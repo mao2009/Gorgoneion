@@ -90,22 +90,17 @@ public static class Program
                 throw new InvalidDataException("Invalid policy: targets and minimum severity are required.");
             var rejected = 0;
             var lineNo = 0;
+            var ingest = new EveIngestor();
             foreach (var line in File.ReadLines(args[4]))
             {
                 lineNo++;
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 Decision result;
-                try
-                {
-                    var evt = EveParser.Parse(line);
-                    result = evt is null
-                        ? new("denied", "invalid_event_schema", policy.Adapter, null, null, null, null)
-                        : Nemesys.Evaluate(evt, policy);
-                }
-                catch (JsonException)
-                {
-                    result = new("denied", "invalid_json", policy.Adapter, null, null, null, null);
-                }
+                var parsed = ingest.Read(line);
+                result = parsed.Event is not null
+                    ? Nemesys.Evaluate(parsed.Event, policy)
+                    : new Decision("denied", parsed.Rejection ?? "invalid_event_schema",
+                        policy.Adapter, null, null, null, null);
                 if (result.Outcome == "denied") rejected++;
                 Console.WriteLine(JsonSerializer.Serialize(new { line = lineNo, result }, JsonOptions));
             }
