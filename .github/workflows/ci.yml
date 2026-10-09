@@ -18,3 +18,5 @@ jobs:
       - run: dotnet run --project tests/Gorgoneion.SmokeTests/Gorgoneion.SmokeTests.csproj -c Release
       - run: dotnet run --project src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release -- evaluate --policy examples/policy.example.json --authorization examples/authorization.example.json --input examples/eve.example.jsonl --audit "$RUNNER_TEMP/gorgoneion-audit.jsonl"
       - run: dotnet run --project src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release -- verify-audit --input "$RUNNER_TEMP/gorgoneion-audit.jsonl"
+      - run: dotnet run --project src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release -- evaluate --policy examples/policy.example.json --authorization examples/authorization.example.json --input examples/eve.example.jsonl --audit "$RUNNER_TEMP/gorgoneion-strategy-audit.jsonl" --strategies examples/strategies.example.json
+      - run: dotnet run --project src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release -- verify-audit --input "$RUNNER_TEMP/gorgoneion-strategy-audit.jsonl"
