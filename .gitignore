@@ -1,0 +1,15 @@
+# .NET / Rust build products
+**/bin/
+**/obj/
+**/target/
+.vs/
+.idea/
+*.user
+*.suo
+# Local secrets, logs and evidence
+.env
+.env.*
+!.env.example
+*.log
+data/
+evidence/
