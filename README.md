@@ -55,7 +55,7 @@ If adoption and sustainability justify establishing a company, **paid plans are 
 
 **Rights granted by an already published OSS license cannot be retroactively withdrawn.** Future licensing decisions must respect third-party licenses and contributor rights. Sponsorship is *not* a support agreement.
 
-See [COMMERCIAL.md](COMMERCIAL.md) for the funding roadmap, and [docs/architecture.md](docs/architecture.md) for the initial technical scope.
+See [COMMERCIAL.md](COMMERCIAL.md) for the funding roadmap, [docs/architecture.md](docs/architecture.md) for the initial technical scope, and [docs/strategy-catalog.md](docs/strategy-catalog.md) for versioned, dry-run-only orchestration rules.
 
 ## Current limitations and security
 
