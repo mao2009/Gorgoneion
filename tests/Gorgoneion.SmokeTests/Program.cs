@@ -33,6 +33,7 @@ Assert(CapabilityCatalog.All.All(x => x.SupportsDryRun), "all providers are dry-
 tests += EveIngestorTests.Run();
 tests += AuthorizationGateTests.Run();
 tests += PipelineTests.Run();
+tests += AuditTrailTests.Run();
 tests += ContractTests.Run();
 tests += await ReadOnlyProbeTests.RunAsync();
 Console.WriteLine($"PASS: {tests} smoke tests. All actions remain dry-run.");
