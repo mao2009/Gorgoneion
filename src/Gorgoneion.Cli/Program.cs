@@ -74,9 +74,10 @@ public static class Program
 
     public static int Main(string[] args)
     {
-        if (args.Length != 5 || args[0] != "evaluate" || args[1] != "--policy" || args[3] != "--input")
+        if (args.Length != 7 || args[0] != "evaluate" || args[1] != "--policy" ||
+            args[3] != "--authorization" || args[5] != "--input")
         {
-            Console.Error.WriteLine("Usage: gorgoneion evaluate --policy policy.json --input eve.jsonl");
+            Console.Error.WriteLine("Usage: gorgoneion evaluate --policy policy.json --authorization authorization.json --input eve.jsonl");
             return 2;
         }
 
@@ -88,21 +89,35 @@ public static class Program
             });
             if (policy is null || policy.AuthorizedTargets is null || policy.MinimumSeverity is < 1 or > 4)
                 throw new InvalidDataException("Invalid policy: targets and minimum severity are required.");
+            // An independently maintained authorization file is mandatory; no implicit fallback.
+            var authorization = JsonSerializer.Deserialize<AuthorizationSnapshot>(
+                File.ReadAllText(args[4]), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (authorization is null || string.IsNullOrWhiteSpace(authorization.Version) ||
+                authorization.Assets is null || authorization.Approvals is null)
+                throw new InvalidDataException("Invalid authorization snapshot.");
+
             var rejected = 0;
             var lineNo = 0;
             var ingest = new EveIngestor();
-            foreach (var line in File.ReadLines(args[4]))
+            foreach (var line in File.ReadLines(args[6]))
             {
                 lineNo++;
                 if (string.IsNullOrWhiteSpace(line)) continue;
-                Decision result;
                 var parsed = ingest.Read(line);
-                result = parsed.Event is not null
-                    ? Nemesys.Evaluate(parsed.Event, policy)
-                    : new Decision("denied", parsed.Rejection ?? "invalid_event_schema",
-                        policy.Adapter, null, null, null, null);
-                if (result.Outcome == "denied") rejected++;
-                Console.WriteLine(JsonSerializer.Serialize(new { line = lineNo, result }, JsonOptions));
+                PipelineResult evaluation = parsed.Event is not null
+                    ? DryRunPipeline.Evaluate(parsed.Event, policy, authorization, DateTimeOffset.UtcNow)
+                    : new PipelineResult(
+                        new Decision("denied", parsed.Rejection ?? "invalid_event_schema",
+                            policy.Adapter, null, null, null, null),
+                        null, authorization.Version);
+                if (evaluation.Decision.Outcome == "denied") rejected++;
+                Console.WriteLine(JsonSerializer.Serialize(new
+                {
+                    line = lineNo,
+                    policyVersion = evaluation.PolicyVersion,
+                    result = evaluation.Decision,
+                    step = evaluation.Step
+                }, JsonOptions));
             }
             // Denied events are normal security decisions, not process failures.
             Console.Error.WriteLine($"Evaluated {lineNo} lines; denied {rejected}; no operations executed.");

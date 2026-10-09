@@ -16,4 +16,4 @@ jobs:
           dotnet-version: '8.0.x'
       - run: dotnet build src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release
       - run: dotnet run --project tests/Gorgoneion.SmokeTests/Gorgoneion.SmokeTests.csproj -c Release
-      - run: dotnet run --project src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release -- evaluate --policy examples/policy.example.json --input examples/eve.example.jsonl
+      - run: dotnet run --project src/Gorgoneion.Cli/Gorgoneion.Cli.csproj -c Release -- evaluate --policy examples/policy.example.json --authorization examples/authorization.example.json --input examples/eve.example.jsonl

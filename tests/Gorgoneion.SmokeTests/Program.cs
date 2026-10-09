@@ -32,6 +32,7 @@ Assert(CapabilityCatalog.Plan(Nemesys.Evaluate(good with { Target = "192.0.2.11"
 Assert(CapabilityCatalog.All.All(x => x.SupportsDryRun), "all providers are dry-run capabilities");
 tests += EveIngestorTests.Run();
 tests += AuthorizationGateTests.Run();
+tests += PipelineTests.Run();
 tests += ContractTests.Run();
 tests += await ReadOnlyProbeTests.RunAsync();
 Console.WriteLine($"PASS: {tests} smoke tests. All actions remain dry-run.");
