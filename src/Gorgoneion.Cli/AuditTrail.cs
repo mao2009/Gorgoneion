@@ -7,7 +7,8 @@ namespace Gorgoneion;
 // Minimal, privacy-conscious decision ledger. It records neither event content nor credentials.
 // A hash chain detects edits/reordering within a retained file, not removal of a complete suffix.
 public sealed record AuditPayload(int Line, string PolicyVersion, string Outcome,
-    string Reason, string Adapter, string? Action, bool DryRun);
+    string Reason, string Adapter, string? Action, bool DryRun,
+    string StrategyVersion = "none");
 public sealed record AuditEntry(int Sequence, string PreviousHash, AuditPayload Payload, string Hash);
 
 public sealed class AuditTrail : IDisposable

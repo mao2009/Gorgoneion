@@ -1,0 +1,12 @@
+{
+  "version": "synthetic-strategy-v1",
+  "rules": [
+    {
+      "id": "critical-alert-to-mock-firewall",
+      "eventType": "alert",
+      "maximumSeverity": 2,
+      "adapter": "firewall.mock",
+      "enabled": true
+    }
+  ]
+}

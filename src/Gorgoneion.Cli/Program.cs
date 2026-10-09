@@ -23,9 +23,11 @@ public static class Nemesys
         if (evt.EventType != "alert") return Deny(evt, policy, "unsupported_event_type");
         if (evt.Severity < 1 || evt.Severity > 4) return Deny(evt, policy, "invalid_severity");
         if (evt.Severity > policy.MinimumSeverity) return Deny(evt, policy, "below_severity_threshold");
-        if (policy.Adapter != "firewall.mock") return Deny(evt, policy, "unsupported_adapter");
+        var cap = CapabilityCatalog.All.SingleOrDefault(c => c.Adapter == policy.Adapter &&
+            c.SupportsDryRun && c.RequiresExplicitApproval);
+        if (cap is null) return Deny(evt, policy, "unsupported_adapter");
         return new Decision("proposed", "authorized_dry_run_only", policy.Adapter,
-            "propose_block_source", source.ToString(), target.ToString(), evt.EventId);
+            cap.Operation, source.ToString(), target.ToString(), evt.EventId);
     }
 
     private static Decision Deny(SecurityEvent evt, Policy policy, string reason) =>
@@ -82,10 +84,11 @@ public static class Program
             return valid ? 0 : 3;
         }
 
-        if (args.Length != 9 || args[0] != "evaluate" || args[1] != "--policy" ||
-            args[3] != "--authorization" || args[5] != "--input" || args[7] != "--audit")
+        if ((args.Length != 9 && args.Length != 11) || args[0] != "evaluate" || args[1] != "--policy" ||
+            args[3] != "--authorization" || args[5] != "--input" || args[7] != "--audit" ||
+            (args.Length == 11 && args[9] != "--strategies"))
         {
-            Console.Error.WriteLine("Usage: gorgoneion evaluate --policy policy.json --authorization authorization.json --input eve.jsonl --audit output.jsonl");
+            Console.Error.WriteLine("Usage: gorgoneion evaluate --policy policy.json --authorization authorization.json --input eve.jsonl --audit output.jsonl [--strategies strategies.json]");
             return 2;
         }
 
@@ -105,10 +108,21 @@ public static class Program
                 throw new InvalidDataException("Invalid authorization snapshot.");
 
 
+            StrategyBook? strategies = null;
+            if (args.Length == 11)
+            {
+                strategies = JsonSerializer.Deserialize<StrategyBook>(
+                    File.ReadAllText(args[10]), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (strategies is null || string.IsNullOrWhiteSpace(strategies.Version) ||
+                    strategies.Rules is null)
+                    throw new InvalidDataException("Invalid strategy book.");
+            }
+
             // An audit destination must be distinct from all inputs, and must not exist.
             var comparer = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             var destination = Path.GetFullPath(args[8]);
-            if (new[] { args[2], args[4], args[6] }.Any(x =>
+            if ((args.Length == 11 ? new[] { args[2], args[4], args[6], args[10] } :
+                new[] { args[2], args[4], args[6] }).Any(x =>
                 string.Equals(Path.GetFullPath(x), destination, comparer)))
                 throw new InvalidDataException("Audit output must not replace an input.");
 
@@ -122,7 +136,7 @@ public static class Program
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 var parsed = ingest.Read(line);
                 PipelineResult evaluation = parsed.Event is not null
-                    ? DryRunPipeline.Evaluate(parsed.Event, policy, authorization, DateTimeOffset.UtcNow)
+                    ? DryRunPipeline.Evaluate(parsed.Event, policy, authorization, DateTimeOffset.UtcNow, strategies)
                     : new PipelineResult(
                         new Decision("denied", parsed.Rejection ?? "invalid_event_schema",
                             policy.Adapter, null, null, null, null),
@@ -131,11 +145,12 @@ public static class Program
                 // Durable audit entry is written before a recommendation is emitted.
                 var d = evaluation.Decision;
                 audit.Append(new AuditPayload(lineNo, evaluation.PolicyVersion, d.Outcome,
-                    d.Reason, d.Adapter, d.Action, d.DryRun));
+                    d.Reason, d.Adapter, d.Action, d.DryRun, evaluation.StrategyVersion));
                 Console.WriteLine(JsonSerializer.Serialize(new
                 {
                     line = lineNo,
                     policyVersion = evaluation.PolicyVersion,
+                    strategyVersion = evaluation.StrategyVersion,
                     result = evaluation.Decision,
                     step = evaluation.Step
                 }, JsonOptions));
