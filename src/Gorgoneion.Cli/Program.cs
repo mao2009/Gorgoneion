@@ -130,15 +130,26 @@ public static class Program
             var rejected = 0;
             var lineNo = 0;
             var ingest = new EveIngestor();
-            foreach (var line in File.ReadLines(args[6]))
+            foreach (var input in BoundedEveReader.ReadLines(args[6]))
             {
                 lineNo++;
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                var parsed = ingest.Read(line);
-                PipelineResult evaluation = parsed.Event is not null
-                    ? DryRunPipeline.Evaluate(parsed.Event, policy, authorization, DateTimeOffset.UtcNow, strategies)
+                if (!input.TooLarge && string.IsNullOrWhiteSpace(input.Line)) continue;
+                SecurityEvent? securityEvent = null;
+                string? rejection = null;
+                if (input.TooLarge)
+                {
+                    rejection = "event_too_large";
+                }
+                else
+                {
+                    var parsed = ingest.Read(input.Line);
+                    securityEvent = parsed.Event;
+                    rejection = parsed.Rejection;
+                }
+                PipelineResult evaluation = securityEvent is not null
+                    ? DryRunPipeline.Evaluate(securityEvent, policy, authorization, DateTimeOffset.UtcNow, strategies)
                     : new PipelineResult(
-                        new Decision("denied", parsed.Rejection ?? "invalid_event_schema",
+                        new Decision("denied", rejection ?? "invalid_event_schema",
                             policy.Adapter, null, null, null, null),
                         null, authorization.Version);
                 if (evaluation.Decision.Outcome == "denied") rejected++;
