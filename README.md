@@ -39,6 +39,10 @@ Network / firewall / IDS / existing EDR telemetry
 
 A management server does **not** automatically see all network traffic. Visibility may require SPAN/TAP, firewall log forwarding, sensor deployment, or integrations. Endpoint internals cannot be reliably inspected without an appropriate management interface or endpoint agent.
 
+## Development and verification
+
+The v0.1 CLI and smoke suite are in [Gorgoneion.sln](Gorgoneion.sln). See the [acceptance matrix](docs/v0.1-acceptance-matrix.md) and the [CLI prototype guide](docs/v0.1-implementation.md) for reproducible checks and explicit limitations. None of these imply a production security control.
+
 ## Planned milestones
 
 - **v0.1:** Architecture, license review, event ingestion, policy evaluation, dry-run CLI, simulated test cases.
