@@ -13,3 +13,6 @@
 *.log
 data/
 evidence/
+
+# Local security-event audit output
+gorgoneion-audit*.jsonl
