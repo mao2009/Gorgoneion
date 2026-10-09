@@ -6,7 +6,7 @@
 
 Gorgoneion is a planned **server-centric, agentless-first** cybersecurity platform. It will integrate established open-source detectors and network controls to orchestrate authorized defensive responses, deception, evidence preservation, and evaluation of attacker effort.
 
-The countermeasure orchestration subsystem is named **Nemesys Engine** (pronounced "Nemesis").
+The countermeasure subsystem is named **Nemesys Engine** (pronounced "Nemesis"). **It primarily orchestrates existing security systems rather than implementing its own counterattack or security primitives.** It discovers adapter capabilities, chooses permitted workflows, checks authorization, invokes supported APIs, and verifies their effects.
 
 ## Principles
 
@@ -31,8 +31,8 @@ Network / firewall / IDS / existing EDR telemetry
                      |
                 Nemesys Engine
           /          |            \
-    blocking     deception     provider reports
-  (owned FW)   (owned decoys)  (human-reviewed)
+  FW adapters   decoy adapters   reporting adapters
+  (owned FW)    (owned decoys)    (human-reviewed)
                      |
                 Audit / CLI / UI
 ```
