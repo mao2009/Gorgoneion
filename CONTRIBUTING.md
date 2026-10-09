@@ -4,7 +4,9 @@ Thanks for your interest. Before implementing major features, open an issue desc
 
 ## Design expectations
 
-- Follow a **reuse-first** policy and document third-party license, upstream URL, version/commit and any modifications.
+- **OSS-first is a prerequisite, not an option.** Before new implementations, investigate reusable upstream projects and link the evaluation in the issue/PR. Document third-party license, upstream URL, version/commit, maintenance and any modifications.
+- Prefer (1) upstream integration via stable API/protocol, (2) compatible library reuse, (3) fork/adaptation, (4) a clean-room implementation when necessary, and only then (5) greenfield implementation. This ordering is guidance, not permission to bypass technical, security, or licensing constraints.
+- If implementing from scratch, include a brief **Why not reuse OSS?** decision and evidence. The reviewer should reject submissions that duplicate suitable OSS without justification.
 - Do not submit copied code without explicit redistribution rights and attribution.
 - Favor centralized, agentless-first deployment and safe defaults.
 - Every response action must have explicit authorization checks, audit logging, dry-run support and rollback or expiry where meaningful.
