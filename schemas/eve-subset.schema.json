@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mao2009/Gorgoneion/blob/main/schemas/eve-subset.schema.json",
+  "title": "Gorgoneion supported subset of Suricata EVE JSON",
+  "description": "Documentation of the subset consumed by the v0.1 CLI. This is not yet used for runtime JSON Schema validation.",
+  "type": "object",
+  "required": ["event_type", "src_ip", "dest_ip"],
+  "properties": {
+    "event_type": { "type": "string" },
+    "src_ip": { "type": "string" },
+    "dest_ip": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "alert": {
+      "type": "object",
+      "properties": {
+        "severity": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "signature": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": true
+}
