@@ -30,4 +30,5 @@ Assert(CapabilityCatalog.Plan(decision, "unknown.live") is null, "unregistered a
 Assert(CapabilityCatalog.Plan(Nemesys.Evaluate(good with { Target = "192.0.2.11" }, policy), "opnsense.preview") is null,
     "unauthorized decision cannot produce a plan");
 Assert(CapabilityCatalog.All.All(x => x.SupportsDryRun), "all providers are dry-run capabilities");
+tests += ContractTests.Run();
 Console.WriteLine($"PASS: {tests} smoke tests. All actions remain dry-run.");
