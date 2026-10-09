@@ -1,0 +1,2 @@
+{"timestamp":"2026-10-09T00:00:00Z","event_type":"alert","src_ip":"198.51.100.20","dest_ip":"192.0.2.10","alert":{"severity":1,"signature":"Synthetic lab probe"}}
+{"timestamp":"2026-10-09T00:00:01Z","event_type":"alert","src_ip":"198.51.100.20","dest_ip":"192.0.2.99","alert":{"severity":1,"signature":"Unauthorized target should be denied"}}
