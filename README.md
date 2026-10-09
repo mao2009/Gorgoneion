@@ -10,7 +10,7 @@ The countermeasure orchestration subsystem is named **Nemesys Engine** (pronounc
 
 ## Principles
 
-- **Reuse first.** Integrate, fork or adapt existing OSS where its licenses permit. Avoid reimplementing established functionality.
+- **OSS-first (mandatory design gate).** Before implementing a subsystem, inventory existing maintained OSS and evaluate integration, embedding, and adaptation. Prefer proven existing implementations unless documented evidence shows they cannot meet requirements. A new implementation requires a recorded justification (license, security, functionality, performance, or maintenance). See [OSS reuse policy](docs/oss-candidates.md).
 - **Agentless first.** Prefer central-server deployment and existing network appliances and telemetry. Optional sensors or integrations may be necessary for visibility and host-level actions.
 - **Authorization before action.** Deny by default, verify asset ownership and authority, log decisions, and require explicit approval for disruptive operations.
 - **No unauthorized hack-back.** No intrusion, destructive payloads, denial-of-service or access to external systems without authorization. An apparent source IP may belong to an innocent compromised host.
