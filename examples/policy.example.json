@@ -1,0 +1,5 @@
+{
+  "authorizedTargets": ["192.0.2.10"],
+  "minimumSeverity": 2,
+  "adapter": "firewall.mock"
+}
