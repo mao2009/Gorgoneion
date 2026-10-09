@@ -74,10 +74,18 @@ public static class Program
 
     public static int Main(string[] args)
     {
-        if (args.Length != 7 || args[0] != "evaluate" || args[1] != "--policy" ||
-            args[3] != "--authorization" || args[5] != "--input")
+
+        if (args.Length == 3 && args[0] == "verify-audit" && args[1] == "--input")
         {
-            Console.Error.WriteLine("Usage: gorgoneion evaluate --policy policy.json --authorization authorization.json --input eve.jsonl");
+            var valid = AuditTrail.Verify(args[2], out var reason);
+            Console.WriteLine(valid ? "Audit verified." : $"Audit invalid: {reason}");
+            return valid ? 0 : 3;
+        }
+
+        if (args.Length != 9 || args[0] != "evaluate" || args[1] != "--policy" ||
+            args[3] != "--authorization" || args[5] != "--input" || args[7] != "--audit")
+        {
+            Console.Error.WriteLine("Usage: gorgoneion evaluate --policy policy.json --authorization authorization.json --input eve.jsonl --audit output.jsonl");
             return 2;
         }
 
@@ -96,6 +104,15 @@ public static class Program
                 authorization.Assets is null || authorization.Approvals is null)
                 throw new InvalidDataException("Invalid authorization snapshot.");
 
+
+            // An audit destination must be distinct from all inputs, and must not exist.
+            var comparer = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            var destination = Path.GetFullPath(args[8]);
+            if (new[] { args[2], args[4], args[6] }.Any(x =>
+                string.Equals(Path.GetFullPath(x), destination, comparer)))
+                throw new InvalidDataException("Audit output must not replace an input.");
+
+            using var audit = AuditTrail.CreateNew(destination);
             var rejected = 0;
             var lineNo = 0;
             var ingest = new EveIngestor();
@@ -111,6 +128,10 @@ public static class Program
                             policy.Adapter, null, null, null, null),
                         null, authorization.Version);
                 if (evaluation.Decision.Outcome == "denied") rejected++;
+                // Durable audit entry is written before a recommendation is emitted.
+                var d = evaluation.Decision;
+                audit.Append(new AuditPayload(lineNo, evaluation.PolicyVersion, d.Outcome,
+                    d.Reason, d.Adapter, d.Action, d.DryRun));
                 Console.WriteLine(JsonSerializer.Serialize(new
                 {
                     line = lineNo,
@@ -123,7 +144,7 @@ public static class Program
             Console.Error.WriteLine($"Evaluated {lineNo} lines; denied {rejected}; no operations executed.");
             return 0;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or InvalidDataException)
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or ArgumentException)
         {
             Console.Error.WriteLine($"Input error: {e.Message}");
             return 2;
